@@ -1,6 +1,4 @@
 local M = {}
-
-
 -- M.setup = function(opts)
 -- 	print("Options: ", opts)
 -- end
@@ -8,7 +6,6 @@ local M = {}
 -- functions we need
 -- - vim.keymap.set(...) -> create new keymaps
 -- - nvim.keymap.get(...) -> create new keymaps
-
 
 -- iterates through given maps (table)
 -- if it finds one with the given lhs, return that mapping
@@ -44,7 +41,6 @@ M.push = function(new_mapping_stack_name, new_mapping_stack_mode, new_mappings)
 		end
 	end
 	M._stack[new_mapping_stack_name] = existing_maps -- add the new mappings we want to get rid of
-	P(new_mappings)
 	for lhs, rhs in pairs(new_mappings) do
 		-- TODO: Pass in options here!
 		vim.keymap.set(new_mapping_stack_mode, lhs, rhs)
