@@ -1,6 +1,5 @@
 local M = {}
 
-M._stack = {}
 
 -- M.setup = function(opts)
 -- 	print("Options: ", opts)
@@ -9,8 +8,6 @@ M._stack = {}
 -- functions we need
 -- - vim.keymap.set(...) -> create new keymaps
 -- - nvim.keymap.get(...) -> create new keymaps
-
--- vim.api
 
 
 -- iterates through given maps (table)
@@ -26,16 +23,17 @@ local find_mapping = function(maps, lhs)
 end
 
 --[
---Pushes a mapping onto the stack.
---Mapping name : string - the name of the override - e.g. "debug_mode"
---Mapping mode : string - the mode the user is in - e.g. "n" for normal mode
---Given mappings : string - the mappings the user wants to push onto the stack - e.g. { [" sf"] = "echo 'print stack trace'"}
+-- Pushes user mappings onto the stack.
+-- Mapping name : string - the name of the override - e.g. "debug_mode"
+-- Mapping mode : string - the mode the user is in - e.g. "n" for normal mode
+-- Given mappings : string - the mappings the user wants to push onto the stack - e.g. { [" sf"] = "echo 'print stack trace'"}
 --]
-M.push = function(mapping_name, mapping_mode, given_mappings)
-	local vim_set_maps = vim.api.nvim_get_keymap(mapping_mode) -- get the keymaps from nvim
-	local existing_maps = {}                                -- initialise a table for saving existing maps
-	for lhs, rhs in pairs(given_mappings) do                -- iterate through the given mappings to push
-		local existing = find_mapping(vim_set_maps, lhs)    -- try to find existing mappings
+M._stack = {}
+M.push = function(new_mapping_stack_name, new_mapping_stack_mode, new_mappings)
+	local existing_mappings = vim.api.nvim_get_keymap(new_mapping_stack_mode) -- get the keymaps from nvim
+	local existing_maps = {}                                               -- initialise a table for saving existing maps
+	for lhs, rhs in pairs(new_mappings) do                                 -- iterate through the given mappings to push
+		local existing = find_mapping(existing_mappings, lhs)              -- try to find existing mappings
 		if existing then
 			--[
 			-- If we find a mapping in the vim mappings...
@@ -45,8 +43,12 @@ M.push = function(mapping_name, mapping_mode, given_mappings)
 			table.insert(existing_maps, existing)
 		end
 	end
-	P(existing_maps)
-	M._stack[mapping_name] = existing_maps
+	M._stack[new_mapping_stack_name] = existing_maps -- add the new mappings we want to get rid of
+	P(new_mappings)
+	for lhs, rhs in pairs(new_mappings) do
+		-- TODO: Pass in options here!
+		vim.keymap.set(new_mapping_stack_mode, lhs, rhs)
+	end
 end
 
 M.pop = function(name)
